@@ -1,0 +1,11 @@
+name = "memo-widget-api"
+main = "src/index.ts"
+compatibility_date = "2024-06-01"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "memo-widget-db"
+database_id = "placeholder-will-be-filled-after-creation"

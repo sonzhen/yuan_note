@@ -1,37 +1,11 @@
 {
   "name": "memo-widget",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@milkdown/core": "^7.20.0",
-    "@milkdown/plugin-listener": "^7.20.0",
-    "@milkdown/preset-commonmark": "^7.20.0",
-    "@milkdown/react": "^7.20.0",
-    "@milkdown/theme-nord": "^7.20.0",
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
-    "dayjs": "^1.11.20",
-    "lucide-react": "^1.9.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "zustand": "^5.0.12"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "dev:web": "npm run dev -w packages/web",
+    "dev:worker": "npm run dev -w packages/worker",
+    "build:web": "npm run build -w packages/web",
+    "deploy:worker": "npm run deploy -w packages/worker"
   }
 }

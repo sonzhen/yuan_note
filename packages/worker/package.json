@@ -1,0 +1,19 @@
+{
+  "name": "memo-widget-worker",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute memo-widget-db --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute memo-widget-db --file=./schema.sql"
+  },
+  "dependencies": {
+    "hono": "^4.4.0",
+    "jose": "^5.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "wrangler": "^3.60.0",
+    "typescript": "~5.8.3"
+  }
+}
