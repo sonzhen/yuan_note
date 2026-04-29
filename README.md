@@ -1,26 +1,64 @@
-# MemoWidget
+# YuanNote
 
-离线优先的备忘录 PWA 应用。支持双人使用（PIN 登录）、个人/共享笔记空间、Markdown 编辑、拖拽排序、提醒推送。
+一个轻量级 PWA 备忘录/待办应用，支持离线使用、多设备同步、Markdown 编辑。
+
+## 特性
+
+- PIN 码登录，最多支持 2 个用户
+- 私人空间 + 共享空间
+- Memo（备忘）和 Todo（待办）两种类型
+- Markdown 富文本编辑（Milkdown）
+- 图片插入支持
+- 拖拽排序
+- 标签分类
+- 离线优先，联网自动同步
+- 自动保存（3 秒无操作）+ Ctrl+S 手动保存
+- PWA 安装到主屏幕
+- 暗色主题
 
 ## 技术栈
 
-- 前端: React 19 + TypeScript + Vite + PWA
-- 后端: Cloudflare Workers + Hono
-- 数据库: Cloudflare D1 (SQLite)
-- 离线: IndexedDB (Dexie.js) + 增量同步
+| 层 | 技术 |
+|---|------|
+| 前端 | React 19 + TypeScript + Vite |
+| 编辑器 | Milkdown (ProseMirror) |
+| 离线存储 | IndexedDB (Dexie.js) |
+| 状态管理 | Zustand |
+| 后端 | Cloudflare Workers + Hono |
+| 数据库 | Cloudflare D1 (SQLite) |
+| 部署 | Cloudflare Pages + Workers |
 
-## 开发
+## 项目结构
+
+```
+packages/
+  web/       # 前端 PWA (React + Vite)
+  worker/    # 后端 API (Hono + D1)
+```
+
+## 访问地址
+
+https://yuannote.pages.dev
+
+## 本地开发
 
 ```bash
 npm install
-npm run dev:worker  # 启动 API (localhost:8787)
-npm run dev:web     # 启动前端 (localhost:5173)
+npm run dev:web      # 启动前端 dev server (localhost:5173)
+npm run dev:worker   # 启动后端 dev server (localhost:8787)
 ```
 
 ## 部署
 
-1. 在 Cloudflare Dashboard 创建 D1 数据库，将 database_id 填入 `packages/worker/wrangler.toml`
-2. 设置 Worker secrets: `wrangler secret put JWT_SECRET`
-3. 初始化数据库: `npm run db:init:remote -w packages/worker`
-4. 部署 Worker: `npm run deploy:worker`
-5. 部署前端: Cloudflare Pages 连接 GitHub，build command: `npm run build:web`，output: `packages/web/dist`
+前端通过 Cloudflare Pages 部署，后端通过 Workers 部署。
+
+```bash
+# 前端部署
+cd packages/web
+VITE_API_URL="" npm run build
+npx wrangler pages deploy dist --project-name=yuannote --branch=main
+
+# 后端部署
+npx esbuild packages/worker/src/index.ts --bundle --format=esm --outfile=packages/worker/dist/index.js
+# 通过 Cloudflare REST API 上传
+```
