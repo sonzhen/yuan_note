@@ -31,7 +31,7 @@ export function PinScreen() {
   return (
     <div className="pin-screen">
       <div className="pin-card">
-        <h1>MemoWidget</h1>
+        <h1>YuanNote</h1>
         {mode === "setup" ? (
           <>
             <p className="pin-hint">首次使用，请创建用户</p>

@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icon-192.png", "icon-512.png"],
       manifest: {
-        name: "MemoWidget",
-        short_name: "Memo",
+        name: "YuanNote",
+        short_name: "YuanNote",
         description: "离线优先的备忘录应用",
         theme_color: "#1a1a2e",
         background_color: "#1a1a2e",

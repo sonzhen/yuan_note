@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "../store";
 import { db } from "../db";
 import { Note, Tag } from "../types";
-import { Save, ArrowLeft, Clock, Tag as TagIcon } from "lucide-react";
-import { MilkdownEditor } from "./MilkdownEditor";
+import { Save, ArrowLeft, Clock, Image } from "lucide-react";
+import { MilkdownEditor, MilkdownEditorHandle } from "./MilkdownEditor";
+import { ImageViewer } from "./ImageViewer";
 import dayjs from "dayjs";
 
 interface Props { noteId: string | null; onBack: () => void; }
@@ -11,65 +12,183 @@ interface Props { noteId: string | null; onBack: () => void; }
 export function EditView({ noteId, onBack }: Props) {
   const { createNote, updateNote, tags, space } = useStore();
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const contentRef = useRef("");
   const [noteType, setNoteType] = useState("memo");
   const [shared, setShared] = useState(space === "shared");
   const [dueAt, setDueAt] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [viewImage, setViewImage] = useState<string | null>(null);
+  const [initialContent, setInitialContent] = useState("");
+  const [saved, setSaved] = useState(true);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<MilkdownEditorHandle>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const titleRef = useRef("");
 
   useEffect(() => {
     if (noteId) {
       db.notes.get(noteId).then((note: Note | undefined) => {
-        if (note) { setTitle(note.title); setContent(note.content); setNoteType(note.type); setShared(Boolean(note.shared)); setDueAt(note.due_at || ""); setSelectedTags(note.tag_ids || []); }
+        if (note) {
+          setTitle(note.title);
+          titleRef.current = note.title;
+          contentRef.current = note.content;
+          setInitialContent(note.content);
+          setNoteType(note.type);
+          setShared(Boolean(note.shared));
+          setDueAt(note.due_at || "");
+          setSelectedTags(note.tag_ids || []);
+        }
         setReady(true);
       });
-    } else { setReady(true); }
+    } else {
+      setDueAt(new Date().toISOString());
+      setReady(true);
+    }
   }, [noteId]);
 
-  const save = async () => {
+  const save = useCallback(async () => {
+    const currentTitle = titleRef.current;
+    if (!currentTitle.trim()) return;
     setSaving(true);
-    if (noteId) { await updateNote(noteId, { title, content, type: noteType, shared, due_at: dueAt || null, tag_ids: selectedTags }); }
-    else { await createNote({ type: noteType, title, content, shared, due_at: dueAt || undefined, tag_ids: selectedTags }); }
+    const content = contentRef.current;
+    if (noteId) {
+      await updateNote(noteId, { title: currentTitle, content, type: noteType, shared, due_at: dueAt || null, tag_ids: selectedTags });
+    } else {
+      await createNote({ type: noteType, title: currentTitle, content, shared, due_at: dueAt || undefined, tag_ids: selectedTags });
+    }
     setSaving(false);
-    onBack();
+    setSaved(true);
+  }, [noteId, noteType, shared, dueAt, selectedTags, updateNote, createNote]);
+
+  const scheduleAutoSave = useCallback(() => {
+    setSaved(false);
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { save(); }, 3000);
+  }, [save]);
+
+  const handleContentChange = useCallback((md: string) => {
+    contentRef.current = md;
+    scheduleAutoSave();
+  }, [scheduleAutoSave]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    titleRef.current = e.target.value;
+    scheduleAutoSave();
   };
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (viewImage) { setViewImage(null); }
+        else { if (autoSaveTimer.current) { clearTimeout(autoSaveTimer.current); } save().then(onBack); }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        save();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [viewImage, save, onBack]);
+
+  useEffect(() => {
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, []);
+
   const toggleTag = (tagId: string) => { setSelectedTags((prev) => prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]); };
+
+  const handleImagePick = () => { fileInputRef.current?.click(); };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      if (editorRef.current) {
+        editorRef.current.insertImage(dataUrl, file.name);
+      }
+      setUploading(false);
+    };
+    reader.onerror = () => { setUploading(false); };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG") {
+        const src = (target as HTMLImageElement).src;
+        if (src) { e.preventDefault(); e.stopPropagation(); setViewImage(src); }
+      }
+    };
+    wrapper.addEventListener("click", handleClick);
+    return () => wrapper.removeEventListener("click", handleClick);
+  }, [ready]);
+
+  const handleBack = () => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    save().then(onBack);
+  };
 
   return (
     <div className="edit-view">
       <div className="edit-header">
-        <button className="icon-btn" onClick={onBack}><ArrowLeft size={18} /></button>
+        <button className="icon-btn" onClick={handleBack}><ArrowLeft size={18} /></button>
         <h2>{noteId ? "编辑笔记" : "新建笔记"}</h2>
-        <div />
+        <div className="edit-header-right">
+          {!saved && <span className="autosave-hint">未保存</span>}
+          {saving && <span className="autosave-hint">保存中...</span>}
+          {saved && !saving && <span className="autosave-hint saved">已保存</span>}
+          <button className="icon-btn" onClick={handleImagePick} title="插入图片">
+            {uploading ? <span className="sync-indicator">↻</span> : <Image size={18} />}
+          </button>
+        </div>
       </div>
-      <div className="edit-form">
-        <div className="form-row type-row">
-          <button className={`type-btn ${noteType === "memo" ? "active" : ""}`} onClick={() => setNoteType("memo")}>备忘</button>
-          <button className={`type-btn ${noteType === "todo" ? "active" : ""}`} onClick={() => setNoteType("todo")}>待办</button>
-          <span className="spacer" />
-          <label className="shared-toggle"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} /><span>共享</span></label>
+      {uploading && <div className="upload-progress"><div className="upload-progress-bar" /></div>}
+      <div className="edit-body">
+        <div className="edit-scrollable">
+          <div className="form-row type-row">
+            <button className={`type-btn ${noteType === "memo" ? "active" : ""}`} onClick={() => setNoteType("memo")}>备忘</button>
+            <button className={`type-btn ${noteType === "todo" ? "active" : ""}`} onClick={() => setNoteType("todo")}>待办</button>
+            <span className="spacer" />
+            <label className="shared-toggle"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} /><span>共享</span></label>
+          </div>
+          <input className="edit-title" placeholder="标题" value={title} onChange={handleTitleChange} />
+          <div ref={wrapperRef}>
+            {ready && <MilkdownEditor ref={editorRef} defaultValue={initialContent} onChange={handleContentChange} />}
+          </div>
         </div>
-        <input className="edit-title" placeholder="标题" value={title} onChange={(e) => setTitle(e.target.value)} />
-        {ready && <MilkdownEditor defaultValue={content} onChange={(md) => setContent(md)} />}
-        <div className="form-row">
-          <Clock size={14} />
-          <input type="datetime-local" value={dueAt ? dayjs(dueAt).format("YYYY-MM-DDTHH:mm") : ""} onChange={(e) => setDueAt(e.target.value ? new Date(e.target.value).toISOString() : "")} />
-        </div>
-        {tags.length > 0 && (
-          <div className="form-row tags-row">
-            <TagIcon size={14} />
-            <div className="tag-choices">
+        <div className="edit-footer">
+          {tags.length > 0 && (
+            <div className="footer-tags">
               {tags.map((tag: Tag) => (
                 <button key={tag.id} className={`tag-chip ${selectedTags.includes(tag.id) ? "selected" : ""}`} style={{ borderColor: tag.color, backgroundColor: selectedTags.includes(tag.id) ? tag.color : "transparent" }} onClick={() => toggleTag(tag.id)}>{tag.name}</button>
               ))}
             </div>
+          )}
+          <div className="footer-row">
+            <div className="footer-date" onClick={() => dateInputRef.current?.showPicker()}>
+              <Clock size={14} />
+              <span>{dueAt ? dayjs(dueAt).format("MM-DD HH:mm") : "提醒时间"}</span>
+              <input ref={dateInputRef} type="datetime-local" className="date-input-hidden" value={dueAt ? dayjs(dueAt).format("YYYY-MM-DDTHH:mm") : ""} onChange={(e) => setDueAt(e.target.value ? new Date(e.target.value).toISOString() : "")} />
+            </div>
+            <button className="save-btn" onClick={() => save()} disabled={!title.trim() || saving}><Save size={14} />{saving ? "保存中" : "保存"}</button>
           </div>
-        )}
-        <button className="save-btn" onClick={save} disabled={!title.trim() || saving}><Save size={14} />{saving ? "保存中..." : "保存"}</button>
+        </div>
       </div>
+      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
+      {viewImage && <ImageViewer src={viewImage} onClose={() => setViewImage(null)} />}
     </div>
   );
 }

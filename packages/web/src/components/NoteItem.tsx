@@ -1,6 +1,6 @@
 import { Note } from "../types";
 import { useStore } from "../store";
-import { Check, Circle, Trash2, Clock, Edit3, GripVertical } from "lucide-react";
+import { Check, Circle, Trash2, Clock, Edit3, GripVertical, CheckSquare, StickyNote } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import dayjs from "dayjs";
@@ -19,7 +19,12 @@ export function NoteItem({ note, onEdit }: Props) {
         {note.is_done ? <Check size={14} /> : <Circle size={14} />}
       </button>
       <div className="note-body" onClick={() => onEdit(note.id)}>
-        <span className="note-title">{note.title}</span>
+        <div className="note-title-row">
+          <span className={`note-type-badge ${note.type}`}>
+            {note.type === "todo" ? <CheckSquare size={10} /> : <StickyNote size={10} />}
+          </span>
+          <span className="note-title">{note.title}</span>
+        </div>
         <div className="note-meta">
           {note.due_at && <span className="note-due"><Clock size={10} />{dayjs(note.due_at).format("MM/DD HH:mm")}</span>}
         </div>

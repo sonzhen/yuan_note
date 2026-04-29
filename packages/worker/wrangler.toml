@@ -8,4 +8,4 @@ crons = ["* * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "memo-widget-db"
-database_id = "placeholder-will-be-filled-after-creation"
+database_id = "e45463fb-b511-41ef-aeb5-2651081794ba"
