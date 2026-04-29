@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { auth } from "./routes/auth";
+import { notes } from "./routes/notes";
 
 type Bindings = {
   DB: D1Database;
@@ -18,6 +19,7 @@ app.get("/api/health", (c) => {
 });
 
 app.route("/api/auth", auth);
+app.route("/api/notes", notes);
 
 export default {
   fetch: app.fetch,
