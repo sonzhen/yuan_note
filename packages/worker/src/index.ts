@@ -3,6 +3,8 @@ import { cors } from "hono/cors";
 import { auth } from "./routes/auth";
 import { notes } from "./routes/notes";
 import { tags } from "./routes/tags";
+import { push } from "./routes/push";
+import { handleReminders } from "./cron/reminders";
 
 type Bindings = {
   DB: D1Database;
@@ -22,10 +24,11 @@ app.get("/api/health", (c) => {
 app.route("/api/auth", auth);
 app.route("/api/notes", notes);
 app.route("/api/tags", tags);
+app.route("/api/push", push);
 
 export default {
   fetch: app.fetch,
-  async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) {
-    ctx.waitUntil(Promise.resolve());
+  async scheduled(_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) {
+    ctx.waitUntil(handleReminders(env));
   },
 };
