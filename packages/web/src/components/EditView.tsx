@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "../store";
 import { db } from "../db";
 import { Note, Tag } from "../types";
-import { Save, ArrowLeft, Clock, Image } from "lucide-react";
-import { MilkdownEditor, MilkdownEditorHandle } from "./MilkdownEditor";
+import { Save, ArrowLeft, Clock } from "lucide-react";
+import { TiptapEditor, TiptapEditorHandle } from "./editor/TiptapEditor";
 import { ImageViewer } from "./ImageViewer";
+import { migrateContent } from "./editor/migrate";
 import dayjs from "dayjs";
 
 interface Props { noteId: string | null; onBack: () => void; }
@@ -25,8 +26,7 @@ export function EditView({ noteId, onBack }: Props) {
   const [saved, setSaved] = useState(true);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<MilkdownEditorHandle>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<TiptapEditorHandle>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleRef = useRef("");
 
@@ -36,8 +36,9 @@ export function EditView({ noteId, onBack }: Props) {
         if (note) {
           setTitle(note.title);
           titleRef.current = note.title;
-          contentRef.current = note.content;
-          setInitialContent(note.content);
+          const html = migrateContent(note.content);
+          contentRef.current = html;
+          setInitialContent(html);
           setNoteType(note.type);
           setShared(Boolean(note.shared));
           setDueAt(note.due_at || "");
@@ -71,8 +72,8 @@ export function EditView({ noteId, onBack }: Props) {
     autoSaveTimer.current = setTimeout(() => { save(); }, 3000);
   }, [save]);
 
-  const handleContentChange = useCallback((md: string) => {
-    contentRef.current = md;
+  const handleContentChange = useCallback((html: string) => {
+    contentRef.current = html;
     scheduleAutoSave();
   }, [scheduleAutoSave]);
 
@@ -86,7 +87,7 @@ export function EditView({ noteId, onBack }: Props) {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (viewImage) { setViewImage(null); }
-        else { if (autoSaveTimer.current) { clearTimeout(autoSaveTimer.current); } save().then(onBack); }
+        else { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); save().then(onBack); }
       }
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
@@ -122,19 +123,13 @@ export function EditView({ noteId, onBack }: Props) {
     e.target.value = "";
   };
 
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === "IMG") {
-        const src = (target as HTMLImageElement).src;
-        if (src) { e.preventDefault(); e.stopPropagation(); setViewImage(src); }
-      }
-    };
-    wrapper.addEventListener("click", handleClick);
-    return () => wrapper.removeEventListener("click", handleClick);
-  }, [ready]);
+  const handleEditorClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG") {
+      const src = (target as HTMLImageElement).src;
+      if (src) { e.preventDefault(); setViewImage(src); }
+    }
+  }, []);
 
   const handleBack = () => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -150,14 +145,11 @@ export function EditView({ noteId, onBack }: Props) {
           {!saved && <span className="autosave-hint">未保存</span>}
           {saving && <span className="autosave-hint">保存中...</span>}
           {saved && !saving && <span className="autosave-hint saved">已保存</span>}
-          <button className="icon-btn" onClick={handleImagePick} title="插入图片">
-            {uploading ? <span className="sync-indicator">↻</span> : <Image size={18} />}
-          </button>
         </div>
       </div>
       {uploading && <div className="upload-progress"><div className="upload-progress-bar" /></div>}
       <div className="edit-body">
-        <div className="edit-scrollable">
+        <div className="edit-scrollable" onClick={handleEditorClick}>
           <div className="form-row type-row">
             <button className={`type-btn ${noteType === "memo" ? "active" : ""}`} onClick={() => setNoteType("memo")}>备忘</button>
             <button className={`type-btn ${noteType === "todo" ? "active" : ""}`} onClick={() => setNoteType("todo")}>待办</button>
@@ -165,9 +157,14 @@ export function EditView({ noteId, onBack }: Props) {
             <label className="shared-toggle"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} /><span>共享</span></label>
           </div>
           <input className="edit-title" placeholder="标题" value={title} onChange={handleTitleChange} />
-          <div ref={wrapperRef}>
-            {ready && <MilkdownEditor ref={editorRef} defaultValue={initialContent} onChange={handleContentChange} />}
-          </div>
+          {ready && (
+            <TiptapEditor
+              ref={editorRef}
+              defaultValue={initialContent}
+              onChange={handleContentChange}
+              onImagePick={handleImagePick}
+            />
+          )}
         </div>
         <div className="edit-footer">
           {tags.length > 0 && (

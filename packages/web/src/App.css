@@ -106,15 +106,59 @@ body { overflow: hidden; }
 .save-btn:hover { opacity: 0.9; }
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Milkdown Editor */
-.milkdown-wrapper { flex: 1; min-height: 120px; border: 1px solid var(--border); border-radius: var(--radius); overflow-y: auto; }
-.milkdown-wrapper::-webkit-scrollbar { width: 4px; }
-.milkdown-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-.milkdown-wrapper .ProseMirror { padding: 8px 10px; font-size: 13px; line-height: 1.6; color: var(--text); outline: none; min-height: 120px; }
-.milkdown-wrapper .ProseMirror p { margin: 0 0 8px; }
-.milkdown-wrapper .ProseMirror code { background: var(--surface); padding: 1px 4px; border-radius: 3px; font-size: 12px; }
-.milkdown-wrapper .ProseMirror blockquote { border-left: 3px solid var(--accent); padding-left: 10px; color: var(--text-muted); margin: 8px 0; }
-.milkdown-wrapper .ProseMirror img { max-width: 60%; max-height: 150px; object-fit: contain; border-radius: var(--radius); margin: 8px 0; cursor: pointer; border: 1px solid var(--border); }
+/* Tiptap Editor */
+.tiptap-editor { flex: 1; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.tiptap-content { flex: 1; overflow-y: auto; }
+.tiptap-content::-webkit-scrollbar { width: 4px; }
+.tiptap-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tiptap-content .tiptap { padding: 10px 12px; font-size: 14px; line-height: 1.7; color: var(--text); outline: none; min-height: 150px; }
+.tiptap-content .tiptap p { margin: 0 0 8px; }
+.tiptap-content .tiptap h1 { font-size: 22px; font-weight: 700; margin: 16px 0 8px; }
+.tiptap-content .tiptap h2 { font-size: 18px; font-weight: 600; margin: 12px 0 6px; }
+.tiptap-content .tiptap h3 { font-size: 16px; font-weight: 600; margin: 10px 0 4px; }
+.tiptap-content .tiptap code { background: var(--surface); padding: 2px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+.tiptap-content .tiptap pre { background: var(--surface); padding: 12px; border-radius: var(--radius); overflow-x: auto; margin: 8px 0; }
+.tiptap-content .tiptap pre code { background: none; padding: 0; }
+.tiptap-content .tiptap blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--text-muted); margin: 8px 0; }
+.tiptap-content .tiptap img { max-width: 60%; max-height: 150px; object-fit: contain; border-radius: var(--radius); margin: 8px 0; cursor: pointer; border: 1px solid var(--border); }
+.tiptap-content .tiptap hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.tiptap-content .tiptap ul, .tiptap-content .tiptap ol { padding-left: 20px; margin: 4px 0; }
+.tiptap-content .tiptap li { margin: 2px 0; }
+.tiptap-content .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.tiptap-content .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 6px; }
+.tiptap-content .tiptap ul[data-type="taskList"] li label { margin-top: 2px; }
+.tiptap-content .tiptap ul[data-type="taskList"] li input[type="checkbox"] { accent-color: var(--accent); }
+.tiptap-content .tiptap table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+.tiptap-content .tiptap table td, .tiptap-content .tiptap table th { border: 1px solid var(--border); padding: 6px 10px; min-width: 60px; }
+.tiptap-content .tiptap table th { background: var(--surface); font-weight: 600; }
+.tiptap-content .tiptap a { color: #64b5f6; text-decoration: underline; }
+.tiptap-content .tiptap .is-empty::before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; float: left; height: 0; }
+
+/* Editor Toolbar */
+.editor-toolbar { display: flex; align-items: center; gap: 2px; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+.tb-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: transparent; color: var(--text-muted); border-radius: 4px; cursor: pointer; }
+.tb-btn:hover { background: var(--surface-hover); color: var(--text); }
+.tb-btn.active { background: var(--accent); color: white; }
+.tb-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+.tb-dropdown-wrap { position: relative; }
+
+/* Bubble Toolbar */
+.bubble-toolbar { display: flex; align-items: center; gap: 2px; padding: 4px 6px; background: #2a2a4a; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+
+/* Color Picker */
+.color-picker-popup { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); z-index: 100; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.color-swatch { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
+.color-swatch:hover { transform: scale(1.2); }
+.color-reset { width: 100%; margin-top: 6px; padding: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+/* Font Size Picker */
+.font-size-popup { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); z-index: 100; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.fs-option { display: block; width: 100%; padding: 6px 16px; border: none; background: transparent; color: var(--text); cursor: pointer; font-size: 12px; text-align: left; border-radius: 4px; white-space: nowrap; }
+.fs-option:hover { background: var(--surface-hover); }
+
+/* Align Popup */
+.align-popup { position: absolute; top: 100%; left: 0; z-index: 100; display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
 /* PIN Screen */
 .pin-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
