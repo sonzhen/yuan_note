@@ -29,6 +29,7 @@ export function EditView({ noteId, onBack }: Props) {
   const editorRef = useRef<TiptapEditorHandle>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleRef = useRef("");
+  const savedNoteId = useRef<string | null>(noteId);
 
   useEffect(() => {
     if (noteId) {
@@ -57,14 +58,15 @@ export function EditView({ noteId, onBack }: Props) {
     if (!currentTitle.trim()) return;
     setSaving(true);
     const content = contentRef.current;
-    if (noteId) {
-      await updateNote(noteId, { title: currentTitle, content, type: noteType, shared, due_at: dueAt || null, tag_ids: selectedTags });
+    if (savedNoteId.current) {
+      await updateNote(savedNoteId.current, { title: currentTitle, content, type: noteType, shared, due_at: dueAt || null, tag_ids: selectedTags });
     } else {
-      await createNote({ type: noteType, title: currentTitle, content, shared, due_at: dueAt || undefined, tag_ids: selectedTags });
+      const newId = await createNote({ type: noteType, title: currentTitle, content, shared, due_at: dueAt || undefined, tag_ids: selectedTags });
+      if (newId) savedNoteId.current = newId;
     }
     setSaving(false);
     setSaved(true);
-  }, [noteId, noteType, shared, dueAt, selectedTags, updateNote, createNote]);
+  }, [noteType, shared, dueAt, selectedTags, updateNote, createNote]);
 
   const scheduleAutoSave = useCallback(() => {
     setSaved(false);

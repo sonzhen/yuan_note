@@ -25,7 +25,7 @@ interface AppState {
 
   loadNotes: () => Promise<void>;
   loadTags: () => Promise<void>;
-  createNote: (input: { type: string; title: string; content?: string; shared?: boolean; due_at?: string; tag_ids?: string[] }) => Promise<void>;
+  createNote: (input: { type: string; title: string; content?: string; shared?: boolean; due_at?: string; tag_ids?: string[] }) => Promise<string | undefined>;
   updateNote: (id: string, input: Record<string, unknown>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   toggleDone: (id: string, isDone: boolean) => Promise<void>;
@@ -150,6 +150,7 @@ export const useStore = create<AppState>((set, get) => ({
     await addPendingChange("create", "note", id, { ...input, id });
     await get().loadNotes();
     get().sync();
+    return id;
   },
 
   updateNote: async (id, input) => {
