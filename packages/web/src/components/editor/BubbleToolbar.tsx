@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { Editor } from "@tiptap/react";
-import { Bold, Italic, Underline, Strikethrough, Palette, Highlighter, Type, Link } from "lucide-react";
+import { Bold, Italic, Underline, Strikethrough, Palette, Highlighter, Type, Link, AArrowUp, AArrowDown } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
 
 const FONT_SIZES = [
@@ -17,6 +17,20 @@ export function BubbleToolbar({ editor }: Props) {
   const [showColor, setShowColor] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
   const [showFontSize, setShowFontSize] = useState(false);
+
+  const FONT_SIZES_CYCLE = ["12px", "14px", "16px", "18px", "20px", "24px", "28px", "32px"];
+
+  const cycleFontSize = (direction: "up" | "down") => {
+    const current = editor.getAttributes("textStyle").fontSize || "16px";
+    const idx = FONT_SIZES_CYCLE.indexOf(current);
+    let next: number;
+    if (direction === "up") {
+      next = idx < FONT_SIZES_CYCLE.length - 1 ? idx + 1 : idx;
+    } else {
+      next = idx > 0 ? idx - 1 : idx;
+    }
+    editor.chain().focus().setFontSize(FONT_SIZES_CYCLE[next]).run();
+  };
 
   const setLink = () => {
     const url = window.prompt("链接地址:", "https://");
@@ -53,6 +67,10 @@ export function BubbleToolbar({ editor }: Props) {
           </div>
         )}
       </div>
+
+      <span className="tb-divider" />
+      <button className="tb-btn" onClick={() => cycleFontSize("up")} title="增大字号"><AArrowUp size={14} /></button>
+      <button className="tb-btn" onClick={() => cycleFontSize("down")} title="减小字号"><AArrowDown size={14} /></button>
 
       <span className="tb-divider" />
 
