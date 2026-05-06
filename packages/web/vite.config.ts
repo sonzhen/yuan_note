@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -36,6 +37,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": "http://localhost:8787",
+    },
+  },
+  test: {
+    coverage: {
+      include: ["src/sync/**/*.ts", "src/utils/**/*.ts", "src/api/**/*.ts"],
+      all: true,
     },
   },
 });
