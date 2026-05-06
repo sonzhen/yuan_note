@@ -16,6 +16,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
 import { FontSize } from "./FontSize";
 import { Indent } from "./Indent";
+import { ListKeymap } from "./ListKeymap";
 import { EditorToolbar } from "./EditorToolbar";
 import { BubbleToolbar } from "./BubbleToolbar";
 import { forwardRef, useImperativeHandle, useRef } from "react";
@@ -57,6 +58,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(({ defaultValu
       Placeholder.configure({ placeholder: "开始输入..." }),
       FontSize,
       Indent,
+      ListKeymap,
     ],
     content: defaultValue,
     onUpdate: ({ editor }) => {
