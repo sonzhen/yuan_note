@@ -122,7 +122,7 @@ export const useStore = create<AppState>((set, get) => ({
       notes = notes.filter((n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
     }
 
-    notes.sort((a, b) => a.sort_order - b.sort_order);
+    notes.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
     set({ notes, loading: false });
   },
 
