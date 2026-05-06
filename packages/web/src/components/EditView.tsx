@@ -24,6 +24,7 @@ export function EditView({ noteId, onBack }: Props) {
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [initialContent, setInitialContent] = useState("");
   const [saved, setSaved] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState("");
   const dateInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<TiptapEditorHandle>(null);
@@ -44,6 +45,7 @@ export function EditView({ noteId, onBack }: Props) {
           setShared(Boolean(note.shared));
           setDueAt(note.due_at || "");
           setSelectedTags(note.tag_ids || []);
+          setUpdatedAt(note.updated_at);
         }
         setReady(true);
       });
@@ -66,6 +68,7 @@ export function EditView({ noteId, onBack }: Props) {
     }
     setSaving(false);
     setSaved(true);
+    setUpdatedAt(new Date().toISOString());
   }, [noteType, shared, dueAt, selectedTags, updateNote, createNote]);
 
   const scheduleAutoSave = useCallback(() => {
@@ -182,6 +185,7 @@ export function EditView({ noteId, onBack }: Props) {
               <span>{dueAt ? dayjs(dueAt).format("MM-DD HH:mm") : "提醒时间"}</span>
               <input ref={dateInputRef} type="datetime-local" className="date-input-hidden" value={dueAt ? dayjs(dueAt).format("YYYY-MM-DDTHH:mm") : ""} onChange={(e) => setDueAt(e.target.value ? new Date(e.target.value).toISOString() : "")} />
             </div>
+            {updatedAt && <span className="edit-updated-time">{dayjs(updatedAt).format("MM-DD HH:mm")}</span>}
             <button className="save-btn" onClick={() => save()} disabled={!title.trim() || saving}><Save size={14} />{saving ? "保存中" : "保存"}</button>
           </div>
         </div>
