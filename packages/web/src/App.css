@@ -223,3 +223,20 @@ body { overflow: hidden; }
 .conflict-context { padding: 4px 8px; margin: 4px 0; opacity: 0.5; font-size: 14px; }
 .conflict-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--border); }
 .conflict-progress { font-size: 13px; color: #888; }
+
+/* Import View */
+.import-view { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+.import-body { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 16px; overflow-y: auto; }
+.import-label { font-size: 12px; color: var(--text-muted); }
+.import-pick-btn { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1.5px dashed var(--border); background: transparent; color: var(--text-muted); border-radius: var(--radius); cursor: pointer; font-size: 13px; }
+.import-pick-btn:hover { border-color: var(--accent); color: var(--text); }
+.import-file-list { display: flex; flex-direction: column; gap: 6px; }
+.import-file-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface); border-radius: var(--radius); }
+.import-file-name { flex: 1; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.import-file-size { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.import-progress { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px; }
+.import-result { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px; }
+.import-result-main { font-size: 16px; font-weight: 600; }
+.import-result-warn { font-size: 12px; color: var(--accent); }
+.import-link { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 0; }
+.import-link:hover { text-decoration: underline; }
