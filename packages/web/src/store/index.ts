@@ -3,6 +3,7 @@ import { db } from "../db";
 import { syncAll, addPendingChange, startPeriodicSync, stopPeriodicSync, deduplicateNotes } from "../sync";
 import { api, setToken, clearToken, setStoredUser, getStoredUser } from "../api/client";
 import { Note, Tag, User } from "../types";
+import { matchNote } from "../utils/fuzzySearch";
 
 interface AppState {
   user: User | null;
@@ -118,8 +119,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      notes = notes.filter((n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+      notes = notes.filter((n) => matchNote(n.title, n.content, searchQuery));
     }
 
     notes.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
