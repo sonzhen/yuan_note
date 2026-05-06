@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { db } from "../db";
-import { syncAll, addPendingChange } from "../sync";
+import { syncAll, addPendingChange, startPeriodicSync, stopPeriodicSync, deduplicateNotes } from "../sync";
 import { api, setToken, clearToken, setStoredUser, getStoredUser } from "../api/client";
 import { Note, Tag, User } from "../types";
 
@@ -42,7 +42,7 @@ export const useStore = create<AppState>((set, get) => ({
   notes: [],
   tags: [],
   space: "mine",
-  filter: {},
+  filter: { type: "memo" },
   searchQuery: "",
   loading: false,
   syncing: false,
@@ -55,6 +55,7 @@ export const useStore = create<AppState>((set, get) => ({
     await get().sync();
     await get().loadNotes();
     await get().loadTags();
+    startPeriodicSync(async () => { await get().sync(); await get().loadNotes(); });
   },
 
   setup: async (name, pin) => {
@@ -65,6 +66,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   logout: () => {
+    stopPeriodicSync();
     clearToken();
     localStorage.removeItem("user");
     set({ user: null, notes: [], tags: [] });
@@ -72,7 +74,15 @@ export const useStore = create<AppState>((set, get) => ({
 
   restoreSession: () => {
     const user = getStoredUser();
-    if (user) set({ user });
+    if (user) {
+      set({ user });
+      get().loadNotes();
+      get().loadTags();
+      deduplicateNotes().then(() => {
+        get().sync().then(() => { get().loadNotes(); get().loadTags(); });
+      });
+      startPeriodicSync(async () => { await get().sync(); await get().loadNotes(); }, 15000);
+    }
   },
 
   setSpace: (space) => {
@@ -140,6 +150,8 @@ export const useStore = create<AppState>((set, get) => ({
       is_done: false,
       due_at: input.due_at || null,
       sort_order: maxOrder + 1,
+      version: 1,
+      base_content: "",
       created_at: now,
       updated_at: now,
       deleted_at: null,
@@ -160,7 +172,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     const updated = { ...existing, ...input, updated_at: now };
     await db.notes.put(updated as Note);
-    await addPendingChange("update", "note", id, input);
+    await addPendingChange("update", "note", id, { ...input, base_version: existing.version });
     await get().loadNotes();
     get().sync();
   },

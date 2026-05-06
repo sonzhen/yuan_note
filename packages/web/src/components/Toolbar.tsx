@@ -7,7 +7,7 @@ interface Props { onNewNote: () => void; }
 export function Toolbar({ onNewNote }: Props) {
   const { filter, setFilter, searchQuery, setSearchQuery } = useStore();
   const [showSearch, setShowSearch] = useState(false);
-  const tabs = [{ label: "All", value: undefined }, { label: "Memo", value: "memo" }, { label: "Todo", value: "todo" }] as const;
+  const tabs = [{ label: "Memo", value: "memo" }, { label: "Todo", value: "todo" }, { label: "All", value: undefined }] as const;
 
   return (
     <>
