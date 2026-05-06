@@ -37,6 +37,32 @@ export const ListKeymap = Extension.create({
         }
         return editor.chain().liftListItem("listItem").lift("bulletList").lift("orderedList").run();
       },
+      Enter: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        const { $from } = selection;
+
+        if (!selection.empty) return false;
+
+        const parent = $from.parent;
+        const isEmpty = parent.content.size === 0;
+        if (!isEmpty) return false;
+
+        if (editor.isActive("listItem")) {
+          return editor.chain().liftListItem("listItem").lift("bulletList").lift("orderedList").run();
+        }
+        if (editor.isActive("taskItem")) {
+          return editor.chain().liftListItem("taskItem").lift("taskList").run();
+        }
+        if (editor.isActive("blockquote")) {
+          return editor.commands.lift("blockquote");
+        }
+        if (editor.isActive("heading")) {
+          return editor.chain().splitBlock().setNode("paragraph").run();
+        }
+
+        return false;
+      },
     };
   },
 });
