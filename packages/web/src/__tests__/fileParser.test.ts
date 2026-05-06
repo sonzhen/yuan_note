@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { parseFiles } from "../utils/fileParser";
 
 function createMockFile(name: string, content: string, type = "text/plain"): File {

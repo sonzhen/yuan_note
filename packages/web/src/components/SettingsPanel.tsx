@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useStore } from "../store";
 import { X } from "lucide-react";
 
-interface Props { onClose: () => void; }
+interface Props { onClose: () => void; onImport: () => void; }
 
-export function SettingsPanel({ onClose }: Props) {
+export function SettingsPanel({ onClose, onImport }: Props) {
   const { tags, createTag, deleteTag } = useStore();
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#e94560");
@@ -24,6 +24,10 @@ export function SettingsPanel({ onClose }: Props) {
           <input type="color" value={newTagColor} onChange={(e) => setNewTagColor(e.target.value)} />
           <button className="type-btn active" onClick={handleCreateTag}>添加</button>
         </div>
+        <h3>数据</h3>
+        <button className="import-pick-btn" onClick={onImport}>
+          <span>导入文档（.docx / .md）</span>
+        </button>
       </div>
     </div>
   );

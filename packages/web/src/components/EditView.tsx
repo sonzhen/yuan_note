@@ -8,9 +8,9 @@ import { ImageViewer } from "./ImageViewer";
 import { migrateContent } from "./editor/migrate";
 import dayjs from "dayjs";
 
-interface Props { noteId: string | null; onBack: () => void; }
+interface Props { noteId: string | null; onBack: () => void; onImport?: () => void; }
 
-export function EditView({ noteId, onBack }: Props) {
+export function EditView({ noteId, onBack, onImport }: Props) {
   const { createNote, updateNote, tags, space } = useStore();
   const [title, setTitle] = useState("");
   const contentRef = useRef("");
@@ -158,6 +158,7 @@ export function EditView({ noteId, onBack }: Props) {
           <div className="form-row type-row">
             <button className={`type-btn ${noteType === "memo" ? "active" : ""}`} onClick={() => setNoteType("memo")}>备忘</button>
             <button className={`type-btn ${noteType === "todo" ? "active" : ""}`} onClick={() => setNoteType("todo")}>待办</button>
+            {!noteId && onImport && <button className="import-link" onClick={onImport}>从文件导入</button>}
             <span className="spacer" />
             <label className="shared-toggle"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} /><span>共享</span></label>
           </div>
