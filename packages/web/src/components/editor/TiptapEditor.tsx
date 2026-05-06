@@ -23,6 +23,7 @@ import { forwardRef, useImperativeHandle, useRef } from "react";
 export interface TiptapEditorHandle {
   insertImage: (src: string, alt: string) => void;
   getHTML: () => string;
+  focus: () => void;
 }
 
 interface Props {
@@ -71,6 +72,9 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(({ defaultValu
     },
     getHTML: () => {
       return editor?.getHTML() || "";
+    },
+    focus: () => {
+      editor?.commands.focus();
     },
   }));
 

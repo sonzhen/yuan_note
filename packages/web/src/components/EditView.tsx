@@ -161,7 +161,7 @@ export function EditView({ noteId, onBack }: Props) {
             <span className="spacer" />
             <label className="shared-toggle"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} /><span>共享</span></label>
           </div>
-          <input className="edit-title" placeholder="标题" value={title} onChange={handleTitleChange} />
+          <input className="edit-title" placeholder="标题" value={title} onChange={handleTitleChange} onKeyDown={(e) => { if (e.key === "Tab") { e.preventDefault(); editorRef.current?.focus(); } }} />
           {ready && (
             <TiptapEditor
               ref={editorRef}
